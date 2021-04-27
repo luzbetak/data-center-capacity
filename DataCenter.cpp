@@ -1,11 +1,11 @@
-//============================================================================
-// Name        : DataCenter.cpp
-// Written by  : Kevin Luzbetak
-// Date        : April 25, 2012
-// Email       : fdxowye@gmail.com 
-// Description : Big Data Center Capacity Design 
-// Compile     : c++ data_center.cpp
-//============================================================================
+/*============================================================================
+ Name        : DataCenter.cpp
+ Written by  : Kevin Luzbetak
+ Date        : April 25, 2012
+ Email       : fdxowye@gmail.com 
+ Description : Big Data Center Capacity Design 
+ Compile     : c++ data_center.cpp
+============================================================================*/
 #include <iostream>
 #include <string>
 #include <map>
