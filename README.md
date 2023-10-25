@@ -2,7 +2,6 @@
 
 Author: Kevin Luzbetak  
 Date: April 25, 2012  
-Email: fdxowye@gmail.com  
 Description: This program is designed to compute the capacity of a big data center. It's written in C++ and can be compiled using the command `c++ data_center.cpp`.
 
 ## Class: DataCenterCapacity
