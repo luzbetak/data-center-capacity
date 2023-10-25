@@ -1,4 +1,4 @@
-# Data Center Capacity Computation Program
+# Data Center Capacity Computation
 
 Author: Kevin Luzbetak  
 Date: April 25, 2012  
