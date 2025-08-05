@@ -15,9 +15,12 @@ void display_usage(const char* program_name) {
     std::cout << "  -h, --help        Show this help message\n";
     std::cout << "  -f, --file FILE   Read input from file\n";
     std::cout << "  -d, --detailed    Show detailed results\n";
+    std::cout << "  -m, --manual      Manual machine ID input (default: auto-generate)\n";
     std::cout << "  -i, --interactive Interactive mode (default)\n\n";
     std::cout << "Example input format:\n";
-    std::cout << "  3 4                 (3 groups, 4 machines per group)\n";
+    std::cout << "  3 4                 (3 groups, 4 machines per group)\n\n";
+    std::cout << "With auto-generation (default), machine IDs are automatically created.\n";
+    std::cout << "With manual mode (-m), you'll need to enter machine IDs:\n";
     std::cout << "  A1 B1 C1 D1        (Group 1 machines)\n";
     std::cout << "  A2 B2 C2 D2        (Group 2 machines)\n";
     std::cout << "  A3 B3 C3 D3        (Group 3 machines)\n\n";
@@ -28,6 +31,7 @@ int main(int argc, char* argv[]) {
         auto data_capacity = std::make_unique<DataCenterCapacity>();
         bool detailed = false;
         bool file_mode = false;
+        bool manual_input = false;
         std::string filename;
         
         // Parse command line arguments
@@ -37,6 +41,8 @@ int main(int argc, char* argv[]) {
                 return 0;
             } else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--detailed") == 0) {
                 detailed = true;
+            } else if (strcmp(argv[i], "-m") == 0 || strcmp(argv[i], "--manual") == 0) {
+                manual_input = true;
             } else if ((strcmp(argv[i], "-f") == 0 || strcmp(argv[i], "--file") == 0) && i + 1 < argc) {
                 file_mode = true;
                 filename = argv[++i];
@@ -54,7 +60,7 @@ int main(int argc, char* argv[]) {
             std::cout << "Reading from file: " << filename << std::endl;
             data_capacity->compute_from_file(filename);
         } else {
-            data_capacity->compute_user_input();
+            data_capacity->compute_user_input(!manual_input);  // Auto-generate by default
         }
         
         // Display results
