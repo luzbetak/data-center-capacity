@@ -44,6 +44,7 @@ public:
     
     // Main computation methods
     void compute_user_input();
+    void compute_user_input(bool auto_generate);
     void compute_from_file(const std::string& filename);
     
     // Getters for results
