@@ -1,164 +1,266 @@
 /*============================================================================
  Name        : DataCenter.cpp
- Written by  : Kevin Luzbetak
- Date        : April 25, 2012
- Description : Big Data Center Capacity Design 
- Compile     : c++ data_center.cpp
+ Written by  : Kevin Luzbetak (Updated)
+ Date        : April 25, 2012 (Updated 2025)
+ Description : Big Data Center Capacity Design - Implementation
 ============================================================================*/
+#include "DataCenter.h"
 #include <iostream>
-#include <string>
-#include <map>
-#include <utility>
 #include <sstream>
-using namespace std;
-
-/* --------------------------------------------------------------------------
- *  DataCenterCapacity class is using the following O:
- *   1. copying user data into matrix m*n
- *   2. reading data from matrix m*n
- *   3. inserts into C++ associative containers O(log n)
- *   4. incrementing an iterator 0 (log n) (amortized O(1))
- *   5. inserts into C++ associative containers O(log n)
- *   6. incrementing an iterator 0 (log n) (amortized O(1))
- * -------------------------------------------------------------------------*/
-class DataCenterCapacity  {
-
-    map<string, double> hashtable;
-    map<string, double> matchtable;
-    static const int MAX_GROUP_RPS=100;
-
-    string split_string_n(string str, int n);
-    void upper_bound(string key, double i);
-    void lower_bound(string key, double i);
-
-public:
-    DataCenterCapacity() {}
-    void compute_user_input();
-};
+#include <fstream>
+#include <iomanip>
+#include <algorithm>
+#include <stdexcept>
 
 //---------------------------------------------------------------------//
-// function split_string_n using string stream
+// Helper function to split a string by delimiter
 //---------------------------------------------------------------------//
-string DataCenterCapacity::split_string_n(string str, int n)
-{
-    string word;
-    stringstream stream(str);
-
-    for (int i=0; i<n; i++)
-        getline(stream, word, '-');
-
-    getline(stream, word, '-');
-    return word;
-}
-//---------------------------------------------------------------------//
-// function upper_bound using
-// inserts into C++ associative containers O(log n)
-//---------------------------------------------------------------------//
-void DataCenterCapacity::upper_bound(string key, double i)
-{
-    if (hashtable[key]) hashtable[key] += i;
-    else hashtable[key] = i;
-}
-//---------------------------------------------------------------------//
-// function lower_bound using
-// inserts into C++ associative containers O(log n)
-//---------------------------------------------------------------------//
-void DataCenterCapacity::lower_bound(string key, double i)
-{
-    if (matchtable[key]) {
-        if (matchtable[key] > i) matchtable[key] = i;
+std::vector<std::string> DataCenterCapacity::split(const std::string& str, char delimiter) const {
+    std::vector<std::string> tokens;
+    std::stringstream ss(str);
+    std::string token;
+    
+    while (std::getline(ss, token, delimiter)) {
+        if (!token.empty()) {
+            tokens.push_back(token);
+        }
     }
-    else matchtable[key] = i;
+    
+    return tokens;
 }
-//---------------------------------------------------------------------//
-// function compute Data Center Capacity
-// inserts into C++ associative containers O(log n)
-//---------------------------------------------------------------------//
-void DataCenterCapacity::compute_user_input()
-{
-    char user_input[256];
-    string user_in;
-    int m_groups = 0;
-    int n_machines = 0;
-    double RequestPerSecond = 0;
 
-    // get user input for number of M-groups and N-machines
-    cout << "Enter M-groups by N-machines:" << endl;;
-    cin.getline (user_input,256);
-    stringstream stream(user_input);
-    getline(stream, user_in, ' ');
-    if ( ! (istringstream(user_in) >> m_groups) ) m_groups = 0;
-    getline(stream, user_in, ' ');
-    if ( ! (istringstream(user_in) >> n_machines) ) n_machines = 0;
-    string matrix[m_groups][n_machines];
-
-    //get input of N machines for each M group
-    for (int i=0; i < m_groups; i++)
-    {
-        cin.getline (user_input,256);
-        int j=0;
-        istringstream iss(user_input);
-        do {
-            string sub;
-            iss >> sub;
-            if (sub.length()) {
-                matrix[i][j] = sub;
-                j++;
-            }
-        } while (iss);
+//---------------------------------------------------------------------//
+// Function to validate input parameters
+//---------------------------------------------------------------------//
+bool DataCenterCapacity::validate_input(int groups, int machines) const {
+    if (groups <= 0 || machines <= 0) {
+        std::cerr << "Error: Number of groups and machines must be positive integers." << std::endl;
+        return false;
     }
+    
+    if (groups > 1000 || machines > 1000) {
+        std::cerr << "Error: Maximum supported groups/machines is 1000." << std::endl;
+        return false;
+    }
+    
+    return true;
+}
 
-    // rotate matrix and add to map
-    for (int j=0; j < n_machines; j++)
-    {
-        for (int i=0; i < m_groups  ; i++)
-        {
-            ostringstream oss;
+//---------------------------------------------------------------------//
+// Function split_string_n - improved version
+//---------------------------------------------------------------------//
+std::string DataCenterCapacity::split_string_n(const std::string& str, int n, char delimiter) const {
+    std::vector<std::string> parts = split(str, delimiter);
+    
+    if (n >= 0 && n < static_cast<int>(parts.size())) {
+        return parts[n];
+    }
+    
+    return "";
+}
+
+//---------------------------------------------------------------------//
+// Function upper_bound - thread-safe version
+//---------------------------------------------------------------------//
+void DataCenterCapacity::upper_bound(const std::string& key, double value) {
+    auto it = hashtable.find(key);
+    if (it != hashtable.end()) {
+        it->second += value;
+    } else {
+        hashtable[key] = value;
+    }
+}
+
+//---------------------------------------------------------------------//
+// Function lower_bound - thread-safe version
+//---------------------------------------------------------------------//
+void DataCenterCapacity::lower_bound(const std::string& key, double value) {
+    auto it = matchtable.find(key);
+    if (it != matchtable.end()) {
+        if (it->second > value) {
+            it->second = value;
+        }
+    } else {
+        matchtable[key] = value;
+    }
+}
+
+//---------------------------------------------------------------------//
+// Function to compute Data Center Capacity from file
+//---------------------------------------------------------------------//
+void DataCenterCapacity::compute_from_file(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        throw std::runtime_error("Could not open file: " + filename);
+    }
+    
+    std::string line;
+    std::getline(file, line);
+    
+    std::istringstream iss(line);
+    iss >> m_groups >> n_machines;
+    
+    if (!validate_input(m_groups, n_machines)) {
+        throw std::invalid_argument("Invalid input parameters");
+    }
+    
+    std::vector<std::vector<std::string>> matrix(m_groups, std::vector<std::string>(n_machines));
+    
+    // Read machine data
+    for (int i = 0; i < m_groups; i++) {
+        if (!std::getline(file, line)) {
+            throw std::runtime_error("Insufficient data in file");
+        }
+        
+        auto machines = split(line, ' ');
+        if (static_cast<int>(machines.size()) != n_machines) {
+            throw std::runtime_error("Invalid number of machines in group " + std::to_string(i));
+        }
+        
+        for (int j = 0; j < n_machines; j++) {
+            matrix[i][j] = machines[j];
+        }
+    }
+    
+    // Process the matrix
+    for (int j = 0; j < n_machines; j++) {
+        for (int i = 0; i < m_groups; i++) {
+            std::ostringstream oss;
             oss << j << "-" << matrix[i][j];
-            upper_bound(oss.str(),  1000);
-
-            //--- Initialize all subset for machine version
-            for (int x=0; x < n_machines; x++)
-            {
-                ostringstream oss0;
+            upper_bound(oss.str(), 1000);
+            
+            // Initialize all subset for machine version
+            for (int x = 0; x < n_machines; x++) {
+                std::ostringstream oss0;
                 oss0 << x << "-" << matrix[i][j];
-                upper_bound(oss0.str(),  0.0001);
+                upper_bound(oss0.str(), 0.0001);
             }
         }
     }
-
-    // Incrementing an iterator O(log n) (amortized O(1))
-    for ( map<string, double>::iterator ii=hashtable.begin(); ii!=hashtable.end(); ++ii)
-    {
-        string output = split_string_n((*ii).first, 1);
-        lower_bound(output, (*ii).second);
+    
+    // Process hashtable to update matchtable
+    for (const auto& pair : hashtable) {
+        std::string output = split_string_n(pair.first, 1);
+        lower_bound(output, pair.second);
     }
-
-    float subset_rps = MAX_GROUP_RPS / n_machines;
-
-    // Incrementing an iterator O(log n) (amortized O(1))
-    for ( map<string, double>::iterator ii=matchtable.begin(); ii!=matchtable.end(); ++ii)
-    {
-        int total = (*ii).second  / 1000;
-        RequestPerSecond += total * subset_rps * n_machines;
+    
+    // Calculate total RPS
+    double subset_rps = static_cast<double>(MAX_GROUP_RPS) / n_machines;
+    total_rps = 0.0;
+    
+    for (const auto& pair : matchtable) {
+        int total = static_cast<int>(pair.second / 1000);
+        total_rps += total * subset_rps * n_machines;
     }
-
-    cout << "-------------------------------------" << endl;
-    cout << "Data Center Configuration"             << endl;
-    cout << "Requests Per Second = " << RequestPerSecond << endl;
-    cout << "M-group             = " << m_groups    << endl;
-    cout << "N-machines          = " << n_machines  << endl;
-    cout << "-------------------------------------" << endl << endl;
 }
 
 //---------------------------------------------------------------------//
-//           Main function instantiate DataCenterCapacity
+// Function compute Data Center Capacity - improved version
 //---------------------------------------------------------------------//
-int main()
-{
-    DataCenterCapacity *data_capacity = new DataCenterCapacity();
-    data_capacity->compute_user_input();
-    delete data_capacity;
-    return 0;
+void DataCenterCapacity::compute_user_input() {
+    std::cout << "\n=== Data Center Capacity Calculator ===" << std::endl;
+    std::cout << "Enter M-groups and N-machines (e.g., '3 4'): ";
+    
+    std::string input;
+    std::getline(std::cin, input);
+    
+    std::istringstream iss(input);
+    if (!(iss >> m_groups >> n_machines)) {
+        std::cerr << "Error: Invalid input format. Please enter two integers." << std::endl;
+        return;
+    }
+    
+    if (!validate_input(m_groups, n_machines)) {
+        return;
+    }
+    
+    std::vector<std::vector<std::string>> matrix(m_groups, std::vector<std::string>(n_machines));
+    
+    std::cout << "\nEnter " << n_machines << " machine IDs for each of the " 
+              << m_groups << " groups:" << std::endl;
+    
+    // Get input of N machines for each M group
+    for (int i = 0; i < m_groups; i++) {
+        std::cout << "Group " << (i + 1) << ": ";
+        std::getline(std::cin, input);
+        
+        auto machines = split(input, ' ');
+        if (static_cast<int>(machines.size()) != n_machines) {
+            std::cerr << "Error: Expected " << n_machines << " machines, got " 
+                      << machines.size() << std::endl;
+            return;
+        }
+        
+        for (int j = 0; j < n_machines; j++) {
+            matrix[i][j] = machines[j];
+        }
+    }
+    
+    // Clear previous data
+    hashtable.clear();
+    matchtable.clear();
+    
+    // Rotate matrix and add to map
+    for (int j = 0; j < n_machines; j++) {
+        for (int i = 0; i < m_groups; i++) {
+            std::ostringstream oss;
+            oss << j << "-" << matrix[i][j];
+            upper_bound(oss.str(), 1000);
+            
+            // Initialize all subset for machine version
+            for (int x = 0; x < n_machines; x++) {
+                std::ostringstream oss0;
+                oss0 << x << "-" << matrix[i][j];
+                upper_bound(oss0.str(), 0.0001);
+            }
+        }
+    }
+    
+    // Process hashtable to update matchtable
+    for (const auto& pair : hashtable) {
+        std::string output = split_string_n(pair.first, 1);
+        lower_bound(output, pair.second);
+    }
+    
+    // Calculate total RPS
+    double subset_rps = static_cast<double>(MAX_GROUP_RPS) / n_machines;
+    total_rps = 0.0;
+    
+    for (const auto& pair : matchtable) {
+        int total = static_cast<int>(pair.second / 1000);
+        total_rps += total * subset_rps * n_machines;
+    }
 }
 
+//---------------------------------------------------------------------//
+// Display results - basic version
+//---------------------------------------------------------------------//
+void DataCenterCapacity::display_results() const {
+    std::cout << "\n=====================================\n";
+    std::cout << "Data Center Configuration\n";
+    std::cout << "=====================================\n";
+    std::cout << "Requests Per Second = " << std::fixed << std::setprecision(2) 
+              << total_rps << " RPS\n";
+    std::cout << "M-groups            = " << m_groups << "\n";
+    std::cout << "N-machines          = " << n_machines << "\n";
+    std::cout << "Max Group RPS       = " << MAX_GROUP_RPS << "\n";
+    std::cout << "=====================================\n\n";
+}
+
+//---------------------------------------------------------------------//
+// Display results - detailed version
+//---------------------------------------------------------------------//
+void DataCenterCapacity::display_detailed_results() const {
+    display_results();
+    
+    if (!matchtable.empty()) {
+        std::cout << "Machine Version Summary:\n";
+        std::cout << "------------------------\n";
+        for (const auto& pair : matchtable) {
+            std::cout << "Version " << pair.first << ": " 
+                      << std::fixed << std::setprecision(2) 
+                      << pair.second << " units\n";
+        }
+        std::cout << "------------------------\n\n";
+    }
+}
