@@ -1,0 +1,223 @@
+# Data Center Capacity Calculator - Git Ignore File
+
+# Compiled Object files
+*.o
+*.obj
+*.lo
+*.slo
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+datacenter
+datacenter.dSYM/
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Build directories
+build/
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+
+# IDE and Editor files
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Xcode
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+*.xcuserstate
+project.xcworkspace/
+
+# CLion
+.idea/
+cmake-build-*/
+
+# Vim
+*.swp
+*.swo
+*~
+.*.swp
+.*.swo
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+*.temp
+
+# Log files
+*.log
+logs/
+
+# Test files and output
+test/
+tests/
+*.test
+*.spec
+coverage/
+*.gcov
+*.gcda
+*.gcno
+
+# Sample/temporary data files
+sample_input.txt
+test_input.txt
+output.txt
+results.txt
+*.dat
+*.data
+temp/
+tmp/
+
+# Package files
+*.tar
+*.tar.gz
+*.zip
+*.7z
+*.rar
+
+# Documentation build files
+docs/_build/
+docs/_static/
+docs/_templates/
+*.pdf
+!README.pdf
+
+# Python (if using any Python scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.Python
+env/
+venv/
+.env
+
+# CMake (if migrating to CMake later)
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile.cmake
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# Profiling
+*.prof
+gmon.out
+callgrind.out.*
+perf.data
+perf.data.old
+
+# Core dumps
+core
+core.*
+vgcore.*
+
+# Distribution / packaging
+dist/
+MANIFEST
+
+# Keep these files
+!Makefile
+!README.md
+!*.cpp
+!*.h
+!*.hpp
+!build.sh
+!.gitignore
